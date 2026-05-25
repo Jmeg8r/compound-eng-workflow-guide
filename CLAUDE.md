@@ -64,13 +64,32 @@ Work → Review → Compound cycle. The Compound step writes to learnings.jsonl.
 | `date-today-in-tests` | operational | 8 | NEW: Use `timedelta` offsets in tests, never hardcoded dates |
 | `rich-console-singleton` | tool | 7 | NEW: One `Console()` at module level — avoids pipe-detection disagreement |
 
-## Architecture (Session 2 state)
+| `plugin-interface-over-conditionals` | pattern | 8 | NEW S3: Route by prefix in code; don't add type fields to data |
+| `data-format-vs-routing-separation` | architecture | 9 | NEW S3: Format changes break files; routing changes stay in code |
+| `learnings-as-constraints-not-observations` | pattern | 9 | NEW S3: Write constraints, not observations — constraints become guardrails |
+
+## Architecture (Session 3 — final state)
 
 ```
-demo/src/pulse.py        — load_log(), filter_records(), compute_stats(), print_report(), main()
-demo/tests/test_pulse.py — 9 tests, all passing (no _KNOWN_BUG remaining after Session 2)
+demo/src/pulse.py
+  ├── MetricPlugin (ABC)        — base class: label(), extra_rows(), threshold_warning()
+  ├── SleepPlugin               — prefix "sleep": nights-below-threshold, low-sleep warning
+  ├── StepsPlugin               — prefix "steps": goal %, days hit goal
+  ├── DefaultPlugin             — fallback for unregistered metrics
+  ├── get_plugin(metric_name)   — prefix router
+  ├── load_log()                — raw line parsing, blank-line safe, date objects at load time
+  ├── filter_records()          — --filter (substring) and --days (timedelta) support
+  ├── compute_stats()           — count, mean, min/max, rolling 7-day avg
+  └── print_report()            — plugin-aware rich Table output
+
+demo/tests/test_pulse.py — 15 tests, all passing
+skills/pulse-review/SKILL.md — minimal example skill (~50 lines)
 ```
 
-Session 3 will add: plugin architecture for metric types (replaces if/elif in stats).
-Key learning to apply: `date-parsing-local-vs-utc` already done — plugins receive
-`(datetime.date, float)` tuples. No date parsing inside plugins needed.
+**To add a new metric plugin:**
+1. Subclass `MetricPlugin`
+2. Set `prefix = "your_metric_prefix"`
+3. Implement `label()` and optionally `extra_rows()` / `threshold_warning()`
+4. Add instance to `_PLUGINS` list
+
+No data format changes needed.

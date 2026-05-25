@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+dist/
+build/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Claude Code / gstack session state
+.claude/projects/*/timeline.jsonl.tmp
+.gstack/
+
+# Editor
+.vscode/
+*.swp
+*.swo
+
+# Secrets
+.env
+.env.local
+*.pem

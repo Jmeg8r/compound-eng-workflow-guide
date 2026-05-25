@@ -1,0 +1,4 @@
+{"skill":"gstack-investigate","event":"started","session":"session-001-bootstrap","ts":"2026-05-24T08:15:00-04:00","branch":"feat/initial-structure"}
+{"skill":"gstack-investigate","event":"completed","session":"session-001-bootstrap","ts":"2026-05-24T10:45:00-04:00","branch":"feat/initial-structure","outcome":"success","duration_s":9000}
+{"skill":"gstack-review","event":"started","session":"session-001-bootstrap","ts":"2026-05-24T10:45:00-04:00","branch":"feat/initial-structure"}
+{"skill":"gstack-review","event":"completed","session":"session-001-bootstrap","ts":"2026-05-24T11:00:00-04:00","branch":"feat/initial-structure","outcome":"success","duration_s":900}

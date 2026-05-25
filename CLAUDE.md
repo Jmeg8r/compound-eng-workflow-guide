@@ -45,27 +45,32 @@ Work → Review → Compound cycle. The Compound step writes to learnings.jsonl.
 - Tests: `_KNOWN_BUG` suffix on tests documenting unfixed issues
 - Never suppress errors silently — log or raise with context
 
-## Known Patterns (Session 1)
+## Known Patterns (Session 2 — 12 learnings)
 
 > Updated at Compound step of each session. Reference these before making
 > architectural decisions in subsequent sessions.
 
 | Key | Type | Confidence | Insight summary |
 |-----|------|-----------|-----------------|
-| `csv-blank-line-handling` | pitfall | 7 | DictReader silently skips blank rows — always log skips with line numbers |
+| `csv-blank-line-handling` | pitfall | 8↑ | DictReader drops blank rows entirely — use raw line iteration + csv.reader |
+| `dictreader-drops-blank-rows` | pitfall | 9 | NEW: DictReader never yields blank rows; cannot intercept via try/except |
 | `input-validation-silent-skip` | pitfall | 8 | Float cast gives no row context — validate before casting, surface row index |
-| `terminal-color-fallback` | operational | 8 | Rich strips colors on pipe automatically — test with `\| cat` before shipping |
-| `defaultdict-for-metric-grouping` | pattern | 8 | `defaultdict(list)` + `sorted(records.items())` for deterministic metric grouping |
-| `date-parsing-local-vs-utc` | architecture | 9 | Parse dates to `datetime.date` at load time, not display time |
+| `terminal-color-fallback` | operational | 8 | Rich strips colors on pipe — test with `\| cat` before shipping |
+| `defaultdict-for-metric-grouping` | pattern | 8 | `defaultdict(list)` + `sorted(records.items())` for deterministic grouping |
+| `date-parsing-local-vs-utc` | architecture | 9 | Parse dates to `datetime.date` at load time — confirmed critical for --days filter |
 | `tests-document-known-bugs` | pattern | 9 | `_KNOWN_BUG` suffix + docstring fix plan = living migration guide |
-| `flat-main-before-argparse` | preference | 6 | Use `sys.argv` in Session 1; refactor to `argparse` in Session 2 |
+| `flat-main-before-argparse` | preference | 6 | `sys.argv` in Session 1; refactor to `argparse` in Session 2 |
+| `confidence-score-predicts-fix-complexity` | pattern | 8 | NEW: ≤7 confidence on a pitfall = expect the fix to be harder than assumed |
+| `date-today-in-tests` | operational | 8 | NEW: Use `timedelta` offsets in tests, never hardcoded dates |
+| `rich-console-singleton` | tool | 7 | NEW: One `Console()` at module level — avoids pipe-detection disagreement |
 
-## Architecture (Session 1 state)
+## Architecture (Session 2 state)
 
 ```
-demo/src/pulse.py        — CLI entry point + all logic (monolithic, Session 1)
-demo/tests/test_pulse.py — pytest suite, documents known bugs
+demo/src/pulse.py        — load_log(), filter_records(), compute_stats(), print_report(), main()
+demo/tests/test_pulse.py — 9 tests, all passing (no _KNOWN_BUG remaining after Session 2)
 ```
 
-Session 2 will add: `--filter` flag, `rich` output, `argparse`, error handling.
-Session 3 will add: plugin architecture for metric types.
+Session 3 will add: plugin architecture for metric types (replaces if/elif in stats).
+Key learning to apply: `date-parsing-local-vs-utc` already done — plugins receive
+`(datetime.date, float)` tuples. No date parsing inside plugins needed.

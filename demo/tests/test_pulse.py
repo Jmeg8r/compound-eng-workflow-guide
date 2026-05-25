@@ -1,31 +1,38 @@
 """
-Tests for pulse.py — Session 1 baseline.
+Tests for pulse.py — covers Session 1 (baseline) and Session 2 (filter + color).
 
-WHAT: Basic smoke tests covering the happy path and the known rough edges.
-WHY: Tests document the known behavior AND the known bugs so Session 2
-     can mark them passing rather than discovering them from scratch.
+WHAT: Full test suite including formerly-known-bug tests that now pass,
+      plus new coverage for argparse, --filter, --days, and error handling.
+WHY: Tests are the diff between sessions — watching _KNOWN_BUG become a
+     normal passing test documents the compound payoff.
 """
 
 import pytest
 import tempfile
 import os
 import sys
+import warnings
+from datetime import date, timedelta
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
-from pulse import load_log, compute_stats
+from pulse import load_log, compute_stats, filter_records
 
 
 # ---------------------------------------------------------------------------
-# Happy path
+# Helpers
 # ---------------------------------------------------------------------------
 
 def make_csv(content):
-    """Helper: write content to a temp CSV file, return path."""
+    """Write content to a temp CSV file, return path."""
     f = tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False)
     f.write(content)
     f.close()
     return f.name
 
+
+# ---------------------------------------------------------------------------
+# Session 1 happy path (still passing)
+# ---------------------------------------------------------------------------
 
 def test_load_log_basic():
     path = make_csv(
@@ -38,11 +45,16 @@ def test_load_log_basic():
 
     assert "sleep_hours" in records
     assert len(records["sleep_hours"]) == 2
-    assert records["sleep_hours"][0] == ("2026-05-01", 7.5)
+    # Session 2: dates are now datetime.date objects, not strings
+    assert records["sleep_hours"][0] == (date(2026, 5, 1), 7.5)
 
 
 def test_compute_stats_basic():
-    values = [("2026-05-01", 7.5), ("2026-05-02", 6.0), ("2026-05-03", 8.0)]
+    values = [
+        (date(2026, 5, 1), 7.5),
+        (date(2026, 5, 2), 6.0),
+        (date(2026, 5, 3), 8.0),
+    ]
     stats = compute_stats(values)
     assert stats["count"] == 3
     assert stats["mean"] == 7.17
@@ -51,59 +63,109 @@ def test_compute_stats_basic():
 
 
 # ---------------------------------------------------------------------------
-# Known Session 1 bugs (these should FAIL until fixed in Session 2)
+# Session 2: formerly _KNOWN_BUG tests, now fixed
 # ---------------------------------------------------------------------------
 
-def test_blank_line_handling_KNOWN_BUG():
+def test_blank_line_handling_FIXED():
     """
-    WHAT: A blank line in the CSV silently corrupts the record count.
-    WHY: Python's DictReader (3.13+) does NOT crash on blank lines — it
-         produces a row with None/empty keys that our code skips silently,
-         but only because float() on '' raises ValueError which bubbles up
-         only if the blank row has no key match. The real bug: we don't warn
-         the user that rows were skipped, and we can't distinguish "empty
-         intentionally" from "typo blank line."
-    KNOWN: This is the 'csv-blank-line-handling' pitfall learning.
-    FIX: Session 2 wraps the cast in try/except and logs a warning per
-         skipped row with line number so the user knows their data has gaps.
-
-    NOTE: This test documents expected Session 1 behavior (silent skip /
-          crash depending on Python version). Session 2 makes it pass cleanly.
+    WHAT: Blank lines now emit a warning and skip the row — no crash, no silent data loss.
+    WHY: csv-blank-line-handling learning from Session 1.
     """
     path = make_csv(
         "date,metric,value\n"
         "2026-05-01,sleep_hours,7.5\n"
-        "\n"  # blank line — silently skipped OR crashes depending on env
+        "\n"  # blank line — now handled gracefully
         "2026-05-02,sleep_hours,6.0\n"
     )
-    try:
-        # Session 1 bug: either crashes OR silently under-counts records.
-        # In Python 3.13, DictReader skips blank rows silently — no crash,
-        # but the user gets no feedback that line 3 was dropped.
-        try:
-            records = load_log(path)
-            # If we get here: records may have wrong count (silent skip)
-            # or correct count depending on DictReader version behavior.
-            # The bug is that we can't tell which happened.
-            assert "sleep_hours" in records  # at minimum, data loaded
-        except (ValueError, KeyError):
-            pass  # also acceptable Session 1 behavior (crash on blank)
-    finally:
-        os.unlink(path)
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        records = load_log(path)
+    os.unlink(path)
+
+    # Data loads correctly
+    assert "sleep_hours" in records
+    assert len(records["sleep_hours"]) == 2
+    # Warning was issued for the blank row
+    assert any("skipped" in str(warning.message).lower() for warning in w)
 
 
-def test_non_numeric_value_KNOWN_BUG():
+def test_non_numeric_value_FIXED():
     """
-    WHAT: Non-numeric values silently crash or skip depending on the row.
-    WHY: No input validation in Session 1.
-    KNOWN: This is the 'input-validation-silent-skip' pitfall learning.
+    WHAT: Non-numeric values now skip with a warning instead of crashing.
+    WHY: input-validation-silent-skip learning from Session 1.
     """
     path = make_csv(
         "date,metric,value\n"
-        "2026-05-01,mood,happy\n"  # non-numeric
+        "2026-05-01,mood,happy\n"     # non-numeric — skipped with warning
+        "2026-05-02,mood,7.0\n"       # valid
     )
-    try:
-        with pytest.raises(ValueError):
-            load_log(path)
-    finally:
-        os.unlink(path)
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        records = load_log(path)
+    os.unlink(path)
+
+    # The valid row still loads
+    assert "mood" in records
+    assert len(records["mood"]) == 1
+    # Warning was issued
+    assert any("parse error" in str(warning.message).lower() for warning in w)
+
+
+def test_date_parsed_as_date_object():
+    """
+    WHAT: Dates are datetime.date objects in records, not strings.
+    WHY: date-parsing-local-vs-utc learning — parse at load time for correct comparison.
+    """
+    path = make_csv(
+        "date,metric,value\n"
+        "2026-05-15,steps,8000\n"
+    )
+    records = load_log(path)
+    os.unlink(path)
+
+    d, v = records["steps"][0]
+    assert isinstance(d, date), f"Expected datetime.date, got {type(d)}"
+    assert d == date(2026, 5, 15)
+
+
+# ---------------------------------------------------------------------------
+# Session 2: New feature tests — filter_records
+# ---------------------------------------------------------------------------
+
+def test_filter_by_metric_name():
+    """--filter returns only metrics containing the filter string (case-insensitive)."""
+    records = {
+        "sleep_hours": [(date(2026, 5, 1), 7.5)],
+        "steps": [(date(2026, 5, 1), 8200.0)],
+        "sleep_quality": [(date(2026, 5, 1), 8.0)],
+    }
+    result = filter_records(records, metric_filter="sleep")
+    assert "sleep_hours" in result
+    assert "sleep_quality" in result
+    assert "steps" not in result
+
+
+def test_filter_case_insensitive():
+    records = {"SLEEP_HOURS": [(date(2026, 5, 1), 7.5)]}
+    result = filter_records(records, metric_filter="sleep")
+    assert "SLEEP_HOURS" in result
+
+
+def test_filter_days_excludes_old_records():
+    """--days N excludes entries older than N days from today."""
+    today = date.today()
+    records = {
+        "steps": [
+            (today - timedelta(days=10), 9000.0),  # old — excluded
+            (today - timedelta(days=1), 8000.0),   # recent — included
+        ]
+    }
+    result = filter_records(records, days=5)
+    assert len(result["steps"]) == 1
+    assert result["steps"][0][1] == 8000.0
+
+
+def test_filter_no_results_returns_empty():
+    records = {"sleep_hours": [(date(2026, 5, 1), 7.5)]}
+    result = filter_records(records, metric_filter="nonexistent")
+    assert result == {}

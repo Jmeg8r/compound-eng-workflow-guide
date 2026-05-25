@@ -1,97 +1,229 @@
 #!/usr/bin/env python3
 """
 pulse — personal health metrics CLI
-Session 1 (bootstrap): naive CSV reader, basic stats, no color output.
+Session 2: argparse, rich output, error handling, --filter flag.
 
-WHAT: Reads a CSV log file of daily health/habit metrics and prints summaries.
-WHY: Demonstrate Compound Engineering with a simple real-world tool.
+WHAT: Reads a CSV log of daily health/habit metrics, filters by metric
+      name and/or date range, and prints a color-coded terminal dashboard.
+WHY: Session 2 applies learnings from Session 1 — error handling, argparse,
+     date parsing at load time.
 
 Usage:
-    python pulse.py <logfile.csv>
+    python pulse.py <logfile.csv> [--filter METRIC] [--days N]
 
-Log file format (headers required):
-    date,metric,value
-    2026-05-01,sleep_hours,7.5
-    2026-05-01,steps,8200
-    2026-05-02,sleep_hours,6.0
+Session 1 learnings applied here:
+  - csv-blank-line-handling: wrap CSV parsing in try/except, log skipped rows
+  - input-validation-silent-skip: validate before casting, surface row index
+  - flat-main-before-argparse: refactor sys.argv → argparse now we know the flags
+  - date-parsing-local-vs-utc: parse to datetime.date at load time (not display time)
 """
 
-# WHAT: Standard library only — no deps in Session 1
+# WHAT: stdlib + rich (see requirements.txt)
 import csv
 import sys
+import argparse
 import statistics
+import warnings
 from collections import defaultdict
+from datetime import date, datetime, timedelta
+
+from rich.console import Console
+from rich.table import Table
+from rich import box
+
+# WHAT: Single console instance — handles color/no-color automatically
+# WHY: Rich strips escape codes when stdout is piped; test with `| cat` (terminal-color-fallback learning)
+console = Console()
 
 
 def load_log(filepath):
     """
     WHAT: Read CSV log file into a dict of metric -> list of (date, value) tuples.
-    WHY: Centralizes parsing so stats functions stay clean.
+    WHY: Centralized parsing with error handling.
 
-    NOTE (Session 1): This is the naive version. It will crash on blank lines
-    and silently ignore rows with bad float values. Fixed in Session 2.
+    Session 2 fixes from Session 1 learnings:
+    - csv-blank-line-handling: skip blank rows, warn with line number
+    - input-validation-silent-skip: validate float cast, surface row + column in error
+    - date-parsing-local-vs-utc: parse date strings to datetime.date objects HERE,
+      not in stats/display functions. Deferring caused inconsistent behavior.
     """
     records = defaultdict(list)
+    skipped = 0
 
+    # FIX: csv-blank-line-handling (Session 2) — Python 3.13 DictReader silently
+    # drops blank lines without yielding a row. We can't detect them via the
+    # DictReader loop. Solution: pre-scan with enumerate() on raw file lines,
+    # then parse non-blank lines manually via csv.reader for full row control.
     with open(filepath, newline="") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            metric = row["metric"]
-            date = row["date"]
-            value = float(row["value"])  # BUG: crashes on non-numeric, blank rows
-            records[metric].append((date, value))
+        raw_lines = f.readlines()
+
+    header_line = raw_lines[0] if raw_lines else ""
+    fieldnames = [h.strip() for h in header_line.strip().split(",")]
+
+    for line_num, raw_line in enumerate(raw_lines[1:], start=2):
+        stripped = raw_line.strip()
+
+        # Detect blank lines explicitly — they vanish in DictReader
+        if not stripped:
+            warnings.warn(f"Line {line_num}: blank row skipped", stacklevel=2)
+            skipped += 1
+            continue
+
+        # Parse the row via csv.reader for proper quoting/escaping
+        parsed_row = next(csv.reader([stripped]))
+        if len(parsed_row) != len(fieldnames):
+            warnings.warn(
+                f"Line {line_num}: expected {len(fieldnames)} columns, "
+                f"got {len(parsed_row)} — skipped",
+                stacklevel=2,
+            )
+            skipped += 1
+            continue
+
+        row = dict(zip(fieldnames, parsed_row))
+
+        # FIX: input-validation-silent-skip — validate each field before casting
+        try:
+            metric = row.get("metric", "").strip()
+            date_str = row.get("date", "").strip()
+            value_str = row.get("value", "").strip()
+
+            if not metric or not date_str or not value_str:
+                warnings.warn(
+                    f"Line {line_num}: missing field(s) — skipped",
+                    stacklevel=2,
+                )
+                skipped += 1
+                continue
+
+            # FIX: date-parsing-local-vs-utc — parse at load time
+            parsed_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+            value = float(value_str)
+        except ValueError as e:
+            warnings.warn(f"Line {line_num}: parse error ({e}) — skipped", stacklevel=2)
+            skipped += 1
+            continue
+
+        records[metric].append((parsed_date, value))
+
+    if skipped:
+        console.print(f"[yellow]Warning:[/yellow] {skipped} row(s) skipped during load.")
 
     return records
 
 
+def filter_records(records, metric_filter=None, days=None):
+    """
+    WHAT: Apply optional metric name filter and date range filter.
+    WHY: --filter is Session 2's main new feature.
+
+    Architecture note: date comparison now works correctly because load_log()
+    parses dates to datetime.date objects. If we had deferred parsing to here,
+    we'd be comparing strings like "2026-05-07" > "2026-05-01" which happens
+    to work for ISO dates but is fragile (date-parsing-local-vs-utc learning).
+    """
+    result = {}
+
+    cutoff = None
+    if days is not None:
+        cutoff = date.today() - timedelta(days=days)
+
+    for metric, values in records.items():
+        # Apply metric filter (case-insensitive substring match)
+        if metric_filter and metric_filter.lower() not in metric.lower():
+            continue
+
+        # Apply date range filter
+        if cutoff:
+            values = [(d, v) for d, v in values if d >= cutoff]
+
+        if values:
+            result[metric] = values
+
+    return result
+
+
 def compute_stats(values):
     """
-    WHAT: Compute basic stats for a list of floats.
-    WHY: Reused across all metric types.
+    WHAT: Compute stats for a list of (date, float) tuples.
+    WHY: Unchanged from Session 1 except input type is now (datetime.date, float).
     """
     nums = [v for _, v in values]
+    rolling_7 = None
+
+    if len(nums) >= 2:
+        # WHAT: Rolling 7-day average using the last 7 values (or all if fewer)
+        # WHY: 7-day window is the standard for health metric smoothing
+        window = nums[-7:]
+        rolling_7 = round(statistics.mean(window), 2)
+
     return {
         "count": len(nums),
         "mean": round(statistics.mean(nums), 2),
         "min": min(nums),
         "max": max(nums),
-        # TODO(james): add rolling 7-day average in Session 2
+        "rolling_7": rolling_7,
+        "latest_date": values[-1][0],
+        "latest_value": values[-1][1],
     }
 
 
 def print_report(records):
     """
-    WHAT: Print a plain-text summary of all metrics.
-    WHY: Session 1 — no color yet. Rich terminal output added in Session 2.
+    WHAT: Print a rich terminal dashboard of all metrics.
+    WHY: Session 2 — replacing the plain print() calls with rich Table.
     """
-    print("=" * 50)
-    print("PULSE — Health Metrics Report")
-    print("=" * 50)
-
     if not records:
-        print("No records found.")
+        console.print("[red]No records found (or all filtered out).[/red]")
         return
 
     for metric, values in sorted(records.items()):
         stats = compute_stats(values)
-        print(f"\n{metric.upper().replace('_', ' ')}")
-        print(f"  Entries : {stats['count']}")
-        print(f"  Average : {stats['mean']}")
-        print(f"  Range   : {stats['min']} – {stats['max']}")
-        print(f"  Latest  : {values[-1][0]} → {values[-1][1]}")
 
-    print("\n" + "=" * 50)
+        table = Table(
+            title=f"[bold cyan]{metric.upper().replace('_', ' ')}[/bold cyan]",
+            box=box.ROUNDED,
+            show_header=True,
+            header_style="bold magenta",
+        )
+        table.add_column("Field", style="dim")
+        table.add_column("Value", justify="right")
+
+        table.add_row("Entries", str(stats["count"]))
+        table.add_row("Average", str(stats["mean"]))
+        table.add_row("Min / Max", f"{stats['min']} / {stats['max']}")
+        if stats["rolling_7"]:
+            table.add_row("Rolling 7-day avg", str(stats["rolling_7"]))
+        table.add_row("Latest", f"{stats['latest_date']} → {stats['latest_value']}")
+
+        console.print(table)
+        console.print()
 
 
 def main():
-    # WHAT: Entry point — parse args, load, print
-    # WHY: Kept flat for Session 1; refactored to argparse in Session 2
-    if len(sys.argv) < 2:
-        print("Usage: python pulse.py <logfile.csv>")
-        sys.exit(1)
+    # WHAT: argparse entry point (replaces sys.argv from Session 1)
+    # WHY: flat-main-before-argparse learning — defer argparse until flags are known
+    parser = argparse.ArgumentParser(
+        prog="pulse",
+        description="Personal health metrics dashboard from a CSV log file.",
+    )
+    parser.add_argument("logfile", help="Path to CSV log file (date,metric,value)")
+    parser.add_argument(
+        "--filter",
+        dest="metric_filter",
+        metavar="METRIC",
+        help="Filter to metrics containing this string (case-insensitive)",
+    )
+    parser.add_argument(
+        "--days",
+        type=int,
+        metavar="N",
+        help="Only show data from the last N days",
+    )
+    args = parser.parse_args()
 
-    filepath = sys.argv[1]
-    records = load_log(filepath)
+    records = load_log(args.logfile)
+    records = filter_records(records, metric_filter=args.metric_filter, days=args.days)
     print_report(records)
 
 

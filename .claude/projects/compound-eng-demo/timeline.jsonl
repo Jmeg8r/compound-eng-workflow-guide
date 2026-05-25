@@ -2,3 +2,7 @@
 {"skill":"gstack-investigate","event":"completed","session":"session-001-bootstrap","ts":"2026-05-24T10:45:00-04:00","branch":"feat/initial-structure","outcome":"success","duration_s":9000}
 {"skill":"gstack-review","event":"started","session":"session-001-bootstrap","ts":"2026-05-24T10:45:00-04:00","branch":"feat/initial-structure"}
 {"skill":"gstack-review","event":"completed","session":"session-001-bootstrap","ts":"2026-05-24T11:00:00-04:00","branch":"feat/initial-structure","outcome":"success","duration_s":900}
+{"skill":"gstack-investigate","event":"started","session":"session-002-filter-color","ts":"2026-05-24T13:00:00-04:00","branch":"feat/session-2-filter-color"}
+{"skill":"gstack-investigate","event":"completed","session":"session-002-filter-color","ts":"2026-05-24T14:45:00-04:00","branch":"feat/session-2-filter-color","outcome":"success","duration_s":6300}
+{"skill":"gstack-review","event":"started","session":"session-002-filter-color","ts":"2026-05-24T14:45:00-04:00","branch":"feat/session-2-filter-color"}
+{"skill":"gstack-review","event":"completed","session":"session-002-filter-color","ts":"2026-05-24T15:00:00-04:00","branch":"feat/session-2-filter-color","outcome":"success","duration_s":900}

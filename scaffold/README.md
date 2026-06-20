@@ -26,6 +26,7 @@ only once and never touches your existing CLAUDE.md content.
 | `sessions/TEMPLATE.md` | Brainstorm → Plan → Work → Review → Compound cycle template |
 | `show-learnings.sh` | Offline viewer of this repo's gstack learnings (`high` / `<type>` filters) |
 | `refresh-digest.sh` | Regenerates the CLAUDE.md digest from the gstack store (run at Compound step) |
+| `.coderabbit.yaml` | CodeRabbit review policy (assertive profile, request-changes workflow); copied only if absent |
 
 ## The loop
 

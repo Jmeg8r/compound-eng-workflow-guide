@@ -101,6 +101,14 @@ cp "$SCRIPT_DIR/refresh-digest.sh" ./refresh-digest.sh
 chmod +x ./show-learnings.sh ./refresh-digest.sh
 echo "  + show-learnings.sh, refresh-digest.sh"
 
+# --- CodeRabbit review policy (don't clobber an existing one) ----------------
+if [ -f .coderabbit.yaml ] || [ -f .coderabbit.yml ]; then
+  echo "  = .coderabbit.yaml already present (left as-is)"
+else
+  cp "$SCRIPT_DIR/.coderabbit.yaml" ./.coderabbit.yaml
+  echo "  + .coderabbit.yaml (CodeRabbit review policy)"
+fi
+
 echo ""
 echo "Done: $(basename "$PWD")  (slug: ${SLUG:-<unresolved>})"
 echo "Next: ./refresh-digest.sh && ./show-learnings.sh"

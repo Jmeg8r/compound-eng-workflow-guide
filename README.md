@@ -38,14 +38,12 @@ No gstack required. `show-learnings.sh` needs only `jq`.
 Every Claude Code session starts fresh. The agent re-explains context, re-debates
 architecture, re-discovers bugs you already fixed. Compound Engineering solves this:
 
-```
-Brainstorm → Plan → Work → Review → Compound
-                                        ↓
-                              learnings.jsonl
-                                        ↓
-                    Next session loads learnings automatically
-                                        ↓
-                         Better decisions without re-deliberation
+```mermaid
+flowchart TD
+    Brainstorm --> Plan --> Work --> Review --> Compound
+    Compound -->|writes non-obvious decisions| Learnings[(learnings.jsonl)]
+    Learnings -->|loaded at session start| Next["Next session"]
+    Next -->|better decisions, no re-deliberation| Brainstorm
 ```
 
 The **Compound step** (after every session) writes non-obvious decisions, gotchas,

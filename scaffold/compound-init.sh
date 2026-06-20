@@ -18,6 +18,14 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TARGET="${1:?usage: compound-init.sh <project-dir> [--light]}"
 LIGHT="${2:-}"
 
+# WHAT: reject an unrecognized 2nd argument (e.g. a misspelled --light) instead of
+#       silently falling back to full-scaffold mode.
+if [ -n "$LIGHT" ] && [ "$LIGHT" != "--light" ]; then
+  echo "Unknown option: '$LIGHT'" >&2
+  echo "usage: compound-init.sh <project-dir> [--light]" >&2
+  exit 1
+fi
+
 [ -d "$TARGET/.git" ] || { echo "Not a git repo: $TARGET" >&2; exit 1; }
 cd "$TARGET"
 

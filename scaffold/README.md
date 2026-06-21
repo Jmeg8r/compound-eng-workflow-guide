@@ -15,14 +15,15 @@ scaffold/compound-init.sh /path/to/project
 scaffold/compound-init.sh /path/to/project --light
 ```
 
-`compound-init.sh` is safe to re-run — it inserts the managed `<!-- COMPOUND -->` block
-only once and never touches your existing CLAUDE.md content.
+`compound-init.sh` is safe to re-run — it inserts the managed block (delimited by
+`<!-- COMPOUND:START -->` / `<!-- COMPOUND:END -->`) only once and never touches your
+existing CLAUDE.md content.
 
 ## What lands in each project
 
 | File | Purpose |
 |------|---------|
-| `CLAUDE.md` managed block | "Compound Engineering Setup" + a "Known Patterns" digest table (between `<!-- LEARNINGS -->` markers) |
+| `CLAUDE.md` managed block | "Compound Engineering Setup" + a "Known Patterns" digest table (between `<!-- LEARNINGS:START -->` / `<!-- LEARNINGS:END -->` markers) |
 | `sessions/TEMPLATE.md` | Brainstorm → Plan → Work → Review → Compound cycle template |
 | `show-learnings.sh` | Offline viewer of this repo's gstack learnings (`high` / `<type>` filters) |
 | `refresh-digest.sh` | Regenerates the CLAUDE.md digest from the gstack store (run at Compound step) |

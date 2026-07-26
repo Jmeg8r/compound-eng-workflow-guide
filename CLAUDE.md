@@ -39,11 +39,7 @@ Work → Review → Compound cycle. The Compound step writes to learnings.jsonl.
 
 ## Conventions
 
-- Python: `snake_case` functions/vars, `PascalCase` classes
-- Comments: `# WHAT:` + `# WHY:` on non-obvious blocks
-- Commits: conventional (`feat:`, `fix:`, `docs:`, `chore:`)
 - Tests: `_KNOWN_BUG` suffix on tests documenting unfixed issues
-- Never suppress errors silently — log or raise with context
 
 ## Known Patterns (Session 2 — 12 learnings)
 
@@ -63,7 +59,6 @@ Work → Review → Compound cycle. The Compound step writes to learnings.jsonl.
 | `confidence-score-predicts-fix-complexity` | pattern | 8 | NEW: ≤7 confidence on a pitfall = expect the fix to be harder than assumed |
 | `date-today-in-tests` | operational | 8 | NEW: Use `timedelta` offsets in tests, never hardcoded dates |
 | `rich-console-singleton` | tool | 7 | NEW: One `Console()` at module level — avoids pipe-detection disagreement |
-
 | `plugin-interface-over-conditionals` | pattern | 8 | NEW S3: Route by prefix in code; don't add type fields to data |
 | `data-format-vs-routing-separation` | architecture | 9 | NEW S3: Format changes break files; routing changes stay in code |
 | `learnings-as-constraints-not-observations` | pattern | 9 | NEW S3: Write constraints, not observations — constraints become guardrails |

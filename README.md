@@ -174,6 +174,30 @@ any manual action.
 
 ---
 
+## Rolling Out to Existing Projects (`scaffold/`)
+
+The fork-and-rename flow above is for *new* projects. To add this workflow to a repo that
+**already exists**, use the idempotent scaffolder in [`scaffold/`](scaffold/):
+
+```bash
+scaffold/compound-init.sh /path/to/project          # full setup
+scaffold/compound-init.sh /path/to/project --light   # skip sessions/ if the repo already has one
+```
+
+It installs only the **committed half** of the loop — a managed `<!-- COMPOUND -->` block in
+`CLAUDE.md` (with a regenerating "Known Patterns" digest table), a `sessions/` cycle template,
+and slug-aware `show-learnings.sh` + `refresh-digest.sh`. The **working store stays in gstack**
+(`~/.gstack/projects/<slug>/learnings.jsonl`, auto-loaded at session start), so there is no
+second learnings file to keep in sync.
+
+Re-running is safe (the managed block is inserted once, never duplicated). At a session's
+Compound step, record constraints with `/gstack-learn add`, then `./refresh-digest.sh` to
+refresh the committed table. See [`scaffold/README.md`](scaffold/README.md) for details.
+
+> First rolled out to 15 active projects on 2026-06-20.
+
+---
+
 ## Reading List
 
 - [`docs/compound-cycle.md`](docs/compound-cycle.md) — the 5-step loop explained

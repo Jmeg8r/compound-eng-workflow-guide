@@ -45,7 +45,7 @@ Work → Review → Compound cycle. The Compound step writes to learnings.jsonl.
 - Tests: `_KNOWN_BUG` suffix on tests documenting unfixed issues
 - Never suppress errors silently — log or raise with context
 
-## Known Patterns (Session 2 — 12 learnings)
+## Known Patterns (14 learnings)
 
 > Updated at Compound step of each session. Reference these before making
 > architectural decisions in subsequent sessions.

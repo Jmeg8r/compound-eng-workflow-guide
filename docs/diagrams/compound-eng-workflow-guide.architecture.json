@@ -1,0 +1,252 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Compound Engineering Workflow — the loop and the scaffolder",
+    "output": "compound-eng-workflow-guide.architecture.html",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "main-path",
+        "label": "The compound loop",
+        "focus": [
+          "session",
+          "learnings",
+          "show",
+          "claudemd"
+        ],
+        "note": "A session appends learnings; this repo’s Known Patterns table is updated by hand at the Compound step."
+      },
+      {
+        "id": "rollout",
+        "label": "Rolling out elsewhere",
+        "focus": [
+          "scaffold",
+          "target"
+        ],
+        "note": "compound-init.sh installs the same loop into an existing project."
+      },
+      {
+        "id": "demo",
+        "label": "Demo material",
+        "focus": [
+          "demo",
+          "sessions",
+          "skills"
+        ],
+        "note": "What ships in the template so it is not an empty repo."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "session",
+      "type": "external",
+      "label": "A working session",
+      "sublabel": "Brainstorm to Compound",
+      "pos": [
+        40,
+        250
+      ],
+      "size": [
+        180,
+        64
+      ]
+    },
+    {
+      "id": "learnings",
+      "type": "database",
+      "label": "learnings.jsonl",
+      "sublabel": ".claude/projects/compound-eng-demo",
+      "pos": [
+        280,
+        250
+      ],
+      "size": [
+        200,
+        64
+      ],
+      "tag": "14 entries"
+    },
+    {
+      "id": "show",
+      "type": "backend",
+      "label": "show-learnings.sh",
+      "sublabel": "reads and renders",
+      "pos": [
+        280,
+        110
+      ],
+      "size": [
+        200,
+        64
+      ]
+    },
+    {
+      "id": "claudemd",
+      "type": "database",
+      "label": "CLAUDE.md",
+      "sublabel": "Known Patterns — hand-updated",
+      "pos": [
+        540,
+        250
+      ],
+      "size": [
+        200,
+        64
+      ]
+    },
+    {
+      "id": "sessions",
+      "type": "database",
+      "label": "sessions/",
+      "sublabel": "3 session logs",
+      "pos": [
+        40,
+        400
+      ],
+      "size": [
+        180,
+        64
+      ]
+    },
+    {
+      "id": "demo",
+      "type": "backend",
+      "label": "demo/",
+      "sublabel": "pulse — health metrics CLI",
+      "pos": [
+        280,
+        400
+      ],
+      "size": [
+        200,
+        64
+      ]
+    },
+    {
+      "id": "skills",
+      "type": "backend",
+      "label": "skills/",
+      "sublabel": "example Claude Code skill",
+      "pos": [
+        540,
+        400
+      ],
+      "size": [
+        200,
+        64
+      ]
+    },
+    {
+      "id": "scaffold",
+      "type": "backend",
+      "label": "scaffold/",
+      "sublabel": "compound-init.sh, idempotent",
+      "pos": [
+        540,
+        110
+      ],
+      "size": [
+        200,
+        64
+      ]
+    },
+    {
+      "id": "target",
+      "type": "external",
+      "label": "an existing project",
+      "sublabel": "gains the same loop",
+      "pos": [
+        800,
+        110
+      ],
+      "size": [
+        200,
+        64
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "this template repo",
+      "wraps": [
+        "learnings",
+        "show",
+        "claudemd",
+        "sessions",
+        "demo",
+        "skills",
+        "scaffold"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "session-learnings",
+      "from": "session",
+      "to": "learnings",
+      "label": "appends",
+      "variant": "emphasis"
+    },
+    {
+      "id": "learnings-show",
+      "from": "learnings",
+      "to": "show"
+    },
+    {
+      "id": "scaffold-target",
+      "from": "scaffold",
+      "to": "target",
+      "label": "installs"
+    },
+    {
+      "id": "sessions-demo",
+      "from": "sessions",
+      "to": "demo",
+      "variant": "dashed"
+    },
+    {
+      "id": "demo-skills",
+      "from": "demo",
+      "to": "skills",
+      "variant": "dashed"
+    },
+    {
+      "id": "learnings-claudemd",
+      "from": "learnings",
+      "to": "claudemd",
+      "variant": "emphasis"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "The loop",
+      "items": [
+        "A session appends to .claude/projects/compound-eng-demo/learnings.jsonl",
+        "show-learnings.sh renders that file for a human",
+        "This repo’s CLAUDE.md Known Patterns table is hand-updated at the Compound step — it carries no splice markers and no root refresh-digest.sh"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "What ships",
+      "items": [
+        "14 learnings across 3 simulated session logs",
+        "A working demo CLI (pulse) and one example skill",
+        "Fork it, replace the demo, start session 4"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Rollout",
+      "items": [
+        "scaffold/compound-init.sh installs the loop into an existing repo, idempotently",
+        "--light skips sessions/ when the repo already has one",
+        "The scaffold ships refresh-digest.sh for TARGET projects; it reads ${GSTACK_HOME}/projects/<slug>/learnings.jsonl, not this repo’s file"
+      ]
+    }
+  ]
+}

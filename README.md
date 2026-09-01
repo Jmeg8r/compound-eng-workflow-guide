@@ -59,6 +59,12 @@ compound-eng-workflow-guide/
 ├── CLAUDE.md                          # Claude Code context — evolves across sessions
 ├── show-learnings.sh                  # View learnings without gstack (jq only)
 │
+├── scaffold/                          # Idempotent rollout into an existing project
+│   ├── compound-init.sh               # Installs the committed half of the loop
+│   ├── refresh-digest.sh              # For TARGET projects; reads the gstack store
+│   ├── show-learnings.sh
+│   └── sessions-TEMPLATE.md
+│
 ├── .claude/projects/compound-eng-demo/
 │   ├── learnings.jsonl                # 14 pre-seeded learnings from 3 sessions
 │   └── timeline.jsonl                 # Session timeline log
@@ -70,7 +76,7 @@ compound-eng-workflow-guide/
 │
 ├── sessions/                          # Full Brainstorm → Compound cycle logs
 │   ├── SESSION-001-bootstrap.md       # Naive baseline, 7 initial learnings
-│   ├── SESSION-002-add-filter.md      # argparse, rich, error handling, 5 new learnings
+│   ├── SESSION-002-add-filter.md      # argparse, rich, error handling, 4 new learnings + 1 update
 │   └── SESSION-003-refactor.md        # Plugin architecture, compound payoff
 │
 ├── docs/
@@ -93,7 +99,7 @@ document bugs with `_KNOWN_BUG` suffix. 7 learnings recorded.
 **Session 2:** Opens with CLAUDE.md's Known Patterns table. Three learnings directly drive
 design: `csv-blank-line-handling` → rewrite CSV parsing; `flat-main-before-argparse` →
 refactor to argparse; `date-parsing-local-vs-utc` → parse dates at load time.
-Result: `--filter`, `--days`, rich output, error handling. 5 new learnings.
+Result: `--filter`, `--days`, rich output, error handling. 4 new learnings + 1 update.
 
 **Session 3:** Opens CLAUDE.md. The last note says: *"Key learning to apply:
 `date-parsing-local-vs-utc` already done — plugins receive `(datetime.date, float)` tuples.
@@ -184,7 +190,8 @@ scaffold/compound-init.sh /path/to/project          # full setup
 scaffold/compound-init.sh /path/to/project --light   # skip sessions/ if the repo already has one
 ```
 
-It installs only the **committed half** of the loop — a managed `<!-- COMPOUND -->` block in
+It installs only the **committed half** of the loop — a managed COMPOUND block (delimited by
+paired START/END HTML comment markers; see `scaffold/compound-init.sh` for their exact spelling) in
 `CLAUDE.md` (with a regenerating "Known Patterns" digest table), a `sessions/` cycle template,
 and slug-aware `show-learnings.sh` + `refresh-digest.sh`. The **working store stays in gstack**
 (`~/.gstack/projects/<slug>/learnings.jsonl`, auto-loaded at session start), so there is no
@@ -211,3 +218,14 @@ refresh the committed table. See [`scaffold/README.md`](scaffold/README.md) for 
 ## License
 
 MIT. Fork freely, compound aggressively.
+
+<!-- archify:begin -->
+### System map
+
+![System map](docs/diagrams/compound-eng-workflow-guide.architecture.svg)
+
+Interactive: [`docs/diagrams/compound-eng-workflow-guide.architecture.html`](docs/diagrams/compound-eng-workflow-guide.architecture.html)
+— search nodes, trace routes, compare roles. Source of truth is the typed IR
+[`compound-eng-workflow-guide.architecture.json`](docs/diagrams/compound-eng-workflow-guide.architecture.json);
+edit that, never the HTML.
+<!-- archify:end -->

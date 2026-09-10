@@ -32,3 +32,7 @@ htmlcov/
 .env
 .env.local
 *.pem
+.coderabbit.local.yaml
+.lefthook-local.yml
+.cr-cache/
+*.cr-review.md

@@ -218,14 +218,3 @@ refresh the committed table. See [`scaffold/README.md`](scaffold/README.md) for 
 ## License
 
 MIT. Fork freely, compound aggressively.
-
-<!-- archify:begin -->
-### System map
-
-![System map](docs/diagrams/compound-eng-workflow-guide.architecture.svg)
-
-Interactive: [`docs/diagrams/compound-eng-workflow-guide.architecture.html`](docs/diagrams/compound-eng-workflow-guide.architecture.html)
-— search nodes, trace routes, compare roles. Source of truth is the typed IR
-[`compound-eng-workflow-guide.architecture.json`](docs/diagrams/compound-eng-workflow-guide.architecture.json);
-edit that, never the HTML.
-<!-- archify:end -->

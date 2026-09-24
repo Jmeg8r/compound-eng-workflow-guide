@@ -22,7 +22,6 @@ Session 2 learnings applied here:
 """
 
 import csv
-import sys
 import argparse
 import statistics
 import warnings
@@ -127,7 +126,6 @@ class DefaultPlugin(MetricPlugin):
     WHAT: Fallback plugin for any unregistered metric name.
     WHY: Ensures every metric renders — unknown types don't crash or get skipped.
     """
-    prefix = ""
 
     def label(self) -> str:
         return "Metric"
@@ -157,7 +155,7 @@ def get_plugin(metric_name: str) -> MetricPlugin:
 
 
 # ---------------------------------------------------------------------------
-# Data loading (unchanged from Session 2)
+# Data loading
 # ---------------------------------------------------------------------------
 
 def load_log(filepath):
@@ -221,7 +219,6 @@ def load_log(filepath):
 
 
 def filter_records(records, metric_filter=None, days=None):
-    """Unchanged from Session 2."""
     result = {}
     cutoff = None
     if days is not None:
@@ -239,7 +236,6 @@ def filter_records(records, metric_filter=None, days=None):
 
 
 def compute_stats(values):
-    """Unchanged from Session 2."""
     nums = [v for _, v in values]
     rolling_7 = None
     if len(nums) >= 2:
@@ -258,14 +254,14 @@ def compute_stats(values):
 
 
 # ---------------------------------------------------------------------------
-# Report (Session 3: plugin-aware)
+# Report (plugin-aware)
 # ---------------------------------------------------------------------------
 
 def print_report(records):
     """
     WHAT: Print a rich terminal dashboard — delegates extra rows to plugins.
-    WHY: Session 3 change: each metric's table can now include plugin-specific
-         rows (goal %, below-threshold count) without changing this function.
+    WHY: Each metric's table can include plugin-specific rows (goal %,
+         below-threshold count) without changing this function.
     """
     if not records:
         console.print("[red]No records found (or all filtered out).[/red]")
@@ -285,7 +281,6 @@ def print_report(records):
         table.add_column("Field", style="dim")
         table.add_column("Value", justify="right")
 
-        # Standard rows (same for all metrics)
         table.add_row("Entries", str(stats["count"]))
         table.add_row("Average", str(stats["mean"]))
         table.add_row("Min / Max", f"{stats['min']} / {stats['max']}")
@@ -293,13 +288,11 @@ def print_report(records):
             table.add_row("Rolling 7-day avg", str(stats["rolling_7"]))
         table.add_row("Latest", f"{stats['latest_date']} → {stats['latest_value']}")
 
-        # Plugin-specific rows
         for label, val in plugin.extra_rows(values):
             table.add_row(label, val)
 
         console.print(table)
 
-        # Plugin threshold warning
         warning = plugin.threshold_warning(values)
         if warning:
             console.print(f"  [bold red]⚠[/bold red]  {warning}")
@@ -308,7 +301,7 @@ def print_report(records):
 
 
 # ---------------------------------------------------------------------------
-# Entry point (unchanged from Session 2)
+# Entry point
 # ---------------------------------------------------------------------------
 
 def main():

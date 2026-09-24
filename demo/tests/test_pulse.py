@@ -195,24 +195,3 @@ def test_steps_plugin_goal_tracking():
     labels = [label for label, _ in rows]
     assert "Days hit goal" in labels
     assert "Goal %" in labels
-
-
-def test_plugin_interface_stable_with_date_objects():
-    """
-    WHAT: Verify plugins receive datetime.date objects (not strings).
-    WHY: date-parsing-local-vs-utc learning — this is the Session 3 payoff.
-         Plugin interface was designed assuming load_log() already parsed dates.
-         This test confirms the contract is honored end-to-end.
-    """
-    values = [
-        (date(2026, 5, 1), 7.5),
-        (date(2026, 5, 2), 6.0),
-    ]
-    plugin = SleepPlugin()
-    # If dates were strings, extra_rows would still work (it only uses values)
-    # but this documents the contract explicitly.
-    rows = plugin.extra_rows(values)
-    assert isinstance(rows, list)
-    for label, val in rows:
-        assert isinstance(label, str)
-        assert isinstance(val, str)

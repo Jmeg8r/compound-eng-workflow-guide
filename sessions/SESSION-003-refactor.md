@@ -9,7 +9,7 @@
 
 ## Brainstorm
 
-Session 3 opens with a re-read of CLAUDE.md's "Known Patterns" table (12 entries).
+Session 3 opens with a re-read of CLAUDE.md's "Known Patterns" table (11 entries).
 
 The last line of the architecture section says:
 > "Session 3 will add: plugin architecture for metric types. Key learning to apply:
@@ -20,28 +20,6 @@ That sentence was written during Session 2's Compound step — *before* Session 
 This is the compound payoff: the architecture decision for Session 3 was made in
 Session 2. I didn't have to think about it again. I opened CLAUDE.md and the decision
 was already there.
-
-**[ASTGL CONTENT]**
-**The Problem:** When you build iteratively, the same architectural questions come up
-in every session: "should I parse this data here or defer it?" "Should I add the if/elif
-or extract the abstraction?" You answer them, then you forget them, then you answer them
-again. The cumulative cognitive cost of re-deciding the same things is enormous.
-
-**The Solution:** The Compound step writes the decisions down. Not as documentation
-(nobody reads docs during active development) — as a table in CLAUDE.md that loads
-at session start. The decision is *injected into context* before you write the first
-line of code.
-
-**Why This Matters:** Session 3 didn't "use" the `date-parsing-local-vs-utc` learning.
-It simply didn't make the wrong decision because the learning was there. You can't
-measure what you didn't decide incorrectly. That's the invisible ROI of compounding.
-It's not that the next session is dramatically smarter. It's that it doesn't have to
-make certain mistakes.
-
-**Lesson:** Write your learnings as constraints and invariants, not observations. "Dates
-should be parsed at load time" is a constraint. It loads into context and becomes
-a guardrail. "I observed that parsing dates at display time caused a bug" is an
-observation — it's useful but doesn't create the guardrail.
 
 ---
 
@@ -63,7 +41,7 @@ observation — it's useful but doesn't create the guardrail.
 → verify: ≤50 lines, readable without gstack context
 
 `[Step 6]` Compound step
-→ verify: learnings.jsonl has 15 entries, CLAUDE.md updated
+→ verify: learnings.jsonl has 14 entries, CLAUDE.md updated
 
 ---
 
@@ -124,13 +102,13 @@ Final compound step. Updating `.claude/projects/compound-eng-demo/learnings.json
 | `data-format-vs-routing-separation` | architecture | 9 | NEW | Data format changes are expensive (breaks existing files); routing is cheap (code only) |
 | `learnings-as-constraints-not-observations` | pattern | 9 | NEW | Write constraints ("parse dates at load time") not observations ("I saw a bug") — constraints become guardrails |
 
-Final state: 15 learnings in `learnings.jsonl`, 15 tests passing, 3 sessions complete.
+Final state: 14 learnings in `learnings.jsonl`, 15 tests passing, 3 sessions complete.
 
 ### The compound payoff summary
 
 ```
 Session 1 decisions used in Session 2: 3 of 7 learnings directly applied
-Session 2 decisions used in Session 3: 2 of 5 new learnings directly applied
+Session 2 decisions used in Session 3: 2 of 4 new learnings directly applied
 Decisions made correctly without re-deliberation: 5 architectural constraints
 Minutes saved by not re-debating known questions: estimated 60-90 min
 ```

@@ -27,25 +27,6 @@ What won't Session 1 deliver?
 - Date arithmetic / rolling averages (Session 2)
 - Plugin architecture (Session 3)
 
-**[ASTGL CONTENT]**
-**The Problem:** When you start a new Claude Code session, the agent doesn't know
-what decisions you made last time. You re-explain the same context. It makes the
-same suggestions you already tried and rejected. Every session starts from scratch.
-
-**The Solution:** Compound Engineering. After each session, you run a "Compound
-step" — you write the non-obvious decisions, the gotchas, and the patterns you
-discovered into a `learnings.jsonl` file. The next session loads those learnings
-automatically via gstack's preamble injection. Your agent gets smarter every session
-instead of starting over.
-
-**Why This Matters:** This isn't magic — it's structured memory. The same reason
-a runbook exists: so the next person (or the next session) doesn't have to discover
-the same things you already found. The difference is this runbook writes itself.
-
-**Lesson:** Start every project with an empty `learnings.jsonl`. By session 3, you'll
-have 10-15 entries. By session 10, your agent will be making architectural decisions
-that would have taken hours to re-establish from scratch.
-
 ---
 
 ## Plan

@@ -3,7 +3,7 @@
 **Date:** 2026-05-24  
 **Branch:** `feat/session-2-filter-color`  
 **Duration:** ~2 hours  
-**Outcome:** _KNOWN_BUG tests flipped to passing, --filter and --days working, 5 new learnings
+**Outcome:** _KNOWN_BUG tests flipped to passing, --filter and --days working, 4 new + 1 update
 
 ---
 
@@ -26,27 +26,6 @@ any filtering code is the compound payoff. That architectural decision was made
 correctly because the learning existed. Without it, I would have stored dates as
 strings, and the `--days` filter would have been written against string comparison.
 It would have "worked" for ISO dates but been a lurking bug.
-
-**[ASTGL CONTENT]**
-**The Problem:** I've been building CLI tools for years and I still make the same
-mistake: deferring date parsing to wherever I first need it. The problem isn't that
-I don't know better — it's that there's no forcing function. Without a written
-learning from last session saying "parse dates at load time," my instinct is to parse
-them wherever they're first used (usually in a display function). Then filtering
-breaks because two different places parse dates with two different assumptions.
-
-**The Solution:** The `learnings.jsonl` entry for `date-parsing-local-vs-utc` was
-written in Session 1 *before* Session 2 needed it. When Session 2 opened and I read
-the Known Patterns table, the decision was already made. I wrote `datetime.strptime()`
-at load time without thinking about it — because past-me already did the thinking.
-
-**Why This Matters:** This is what "compounding" actually means. It's not that AI
-gets smarter. It's that your *decisions persist*. The cognitive load of Session 2 is
-lower because Session 1 did the hard thinking. At 10 sessions, you're not starting
-from scratch — you're standing on 50+ preserved decisions.
-
-**Lesson:** The Compound step isn't journaling. It's debt reduction. Every learning
-you write is a decision you never have to make again.
 
 ---
 
@@ -144,4 +123,4 @@ Updating `.claude/projects/compound-eng-demo/learnings.jsonl`:
 | `date-today-in-tests` | operational | 8 | NEW | Avoid `date.today()` hardcoded in test expectations — use `timedelta` offsets from today |
 | `rich-console-singleton` | tool | 7 | NEW | Single `Console()` instance at module level handles pipe detection globally |
 
-CLAUDE.md "Known Patterns" table updated. Session 2 total: 12 learnings.
+CLAUDE.md "Known Patterns" table updated. Session 2 total: 11 learnings.

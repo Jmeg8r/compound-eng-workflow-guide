@@ -16,7 +16,7 @@ python src/pulse.py sample-data.csv
 | Session | What changed | New learnings |
 |---------|-------------|---------------|
 | 1 (bootstrap) | Naive CSV reader, basic stats, sys.argv | 7 — pitfalls, patterns |
-| 2 (filter + color) | argparse, rich output, error handling | +5 — architecture, operational |
+| 2 (filter + color) | argparse, rich output, error handling | +4 new, 1 updated — architecture, operational |
 | 3 (plugins) | Plugin architecture for metric types | +3 — patterns, architecture |
 
 See `../sessions/` for full Brainstorm → Compound cycle logs.

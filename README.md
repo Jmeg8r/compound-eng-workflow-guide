@@ -22,7 +22,7 @@ cd compound-eng-workflow-guide
 ./show-learnings.sh
 
 # Run the demo CLI
-pip install rich
+pip install -r demo/requirements.txt pytest
 python demo/src/pulse.py demo/sample-data.csv
 
 # Run the tests
@@ -58,12 +58,17 @@ persist. Cognitive load decreases. Your codebase gets smarter about itself.
 compound-eng-workflow-guide/
 ├── CLAUDE.md                          # Claude Code context — evolves across sessions
 ├── show-learnings.sh                  # View learnings without gstack (jq only)
+├── SESSION-ARTICLES.md                # ASTGL article blocks for the series
+├── .coderabbit.yaml                   # CodeRabbit review policy
+├── .github/ISSUE_TEMPLATE/            # session-log.md issue template
 │
 ├── scaffold/                          # Idempotent rollout into an existing project
 │   ├── compound-init.sh               # Installs the committed half of the loop
 │   ├── refresh-digest.sh              # For TARGET projects; reads the gstack store
-│   ├── show-learnings.sh
-│   └── sessions-TEMPLATE.md
+│   ├── show-learnings.sh              # gstack-store viewer copied into targets
+│   ├── sessions-TEMPLATE.md
+│   ├── .coderabbit.yaml               # Copied into targets only if absent
+│   └── README.md
 │
 ├── .claude/projects/compound-eng-demo/
 │   ├── learnings.jsonl                # 14 pre-seeded learnings from 3 sessions
@@ -72,7 +77,9 @@ compound-eng-workflow-guide/
 ├── demo/                              # The pulse CLI (teaching vehicle)
 │   ├── src/pulse.py                   # Python CLI — read in session order to see compound payoff
 │   ├── tests/test_pulse.py            # 15 tests, traces from _KNOWN_BUG → fixed
-│   └── sample-data.csv                # Ready to use immediately
+│   ├── sample-data.csv                # Ready to use immediately
+│   ├── requirements.txt               # rich
+│   └── README.md
 │
 ├── sessions/                          # Full Brainstorm → Compound cycle logs
 │   ├── SESSION-001-bootstrap.md       # Naive baseline, 7 initial learnings
@@ -84,7 +91,7 @@ compound-eng-workflow-guide/
 │   ├── learnings-schema.md            # learnings.jsonl field reference
 │   └── local-llm-routing.md           # Ollama + Claude Code hybrid workflow
 │
-└── skills/pulse-review/SKILL.md       # Minimal example skill (~50 lines)
+└── skills/pulse-review/SKILL.md       # Minimal example skill (~40 lines)
 ```
 
 ---
@@ -134,7 +141,8 @@ echo "" > .claude/projects/compound-eng-demo/learnings.jsonl
 echo "" > .claude/projects/compound-eng-demo/timeline.jsonl
 ```
 
-Rename `compound-eng-demo` to match your project slug.
+Rename `compound-eng-demo` to match your project slug, and update `LEARNINGS_FILE`
+in `show-learnings.sh` to the new path.
 
 ### 4. Update CLAUDE.md
 

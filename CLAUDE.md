@@ -83,7 +83,7 @@ demo/src/pulse.py
   └── print_report()            — plugin-aware rich Table output
 
 demo/tests/test_pulse.py — 15 tests, all passing
-skills/pulse-review/SKILL.md — minimal example skill (~50 lines)
+skills/pulse-review/SKILL.md — minimal example skill (~40 lines)
 ```
 
 **To add a new metric plugin:**
